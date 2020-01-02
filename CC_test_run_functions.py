@@ -1,5 +1,11 @@
 import CC_terrain_functions as t
 import pyrealsense2 as rs
+
+import sys # computer-specific module 
+import os # operating system module (path management)
+# add subfolder into default path of folders
+sys.path.append(os.getcwd() + '/helper_functions')
+# now module can be imported from subfolder
 from realsense_device_manager import DeviceManager
 
 # p = rs.pipeline()
