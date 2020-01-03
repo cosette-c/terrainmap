@@ -31,6 +31,7 @@ import cv2
 import numpy as np
 import pyrealsense2 as rs
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 class AppState:
@@ -260,24 +261,24 @@ def pointcloud(out, verts, texcoords, color, painter=True):
     # perform uv-mapping
     out[i[m], j[m]] = color[u[m], v[m]]
 
-def plot(verts):
+def plot(i):
 	y = np.zeros(1)
 	z = np.zeros(1)
+
 	for coor in verts:
 		x = int(coor[0])
-		if 10 <= x <= 500:
+		if -1000 <= x <= 1000:
 			y = np.hstack((y,coor[1]))
 			z = np.hstack((z,coor[2]))
 		else:
 			continue
-
-	# plt.scatter(y,z)
-	# plt.show()
+	plt.cla()
+	plt.scatter(y,z)
 
 out = np.empty((h, w, 3), dtype=np.uint8)
 
 #while True:
-for _ in range(1):
+for _ in range(50):
     # Grab camera data
     if not state.paused:
         # Wait for a coherent pair of frames: depth and color
@@ -365,6 +366,10 @@ for _ in range(1):
 
     if key in (27, ord("q")) or cv2.getWindowProperty(state.WIN_NAME, cv2.WND_PROP_AUTOSIZE) < 0:
         break
+
+liveplot = FuncAnimation(plt.gcf(), plot, interval = 1000)
+
+plt.show()
 
 # Stop streaming
 pipeline.stop()
