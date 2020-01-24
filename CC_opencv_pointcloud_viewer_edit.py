@@ -297,7 +297,7 @@ def build_plot(frames):
 out = np.empty((h, w, 3), dtype=np.uint8)
 
 #while True:
-for _ in range(10):
+for _ in range(3):
 	# Grab camera data
 	if not state.paused:
 		# Wait for a coherent pair of frames: depth and color
