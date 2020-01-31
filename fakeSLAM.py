@@ -52,7 +52,7 @@ def pointcloud_generator(init_angle, init_height, init_x, truth):
         same_j = False
         slope = m.tan(m.radians(i))
         ray_point = [init_x+40, ((init_x+40)*slope)+18]
-        plt.plot([0,ray_point[0]],[18,ray_point[1]]) # plots ray lines
+        #plt.plot([0,ray_point[0]],[18,ray_point[1]]) # plots ray lines
         while same_j == False and j <= np.size(truth, 1)-1:
             j_start = [truth[0, j], truth[1, j]]
             j_end = [truth[0, j+1], truth[1, j+1]]
@@ -96,7 +96,7 @@ def plot(x_max, y_max, init_angle, init_x, init_height, truth, sigma):
 
     camera_error = noise(np.asarray([init_angle, init_height, init_x]), sigma)
     error_pointcloud = pointcloud_generator(camera_error[0], camera_error[1], camera_error[2], truth)
-    plt.plot(error_pointcloud[0], error_pointcloud[1], 'c.') # pointcloud w/ error
+    # plt.plot(error_pointcloud[0], error_pointcloud[1], 'c.') # pointcloud w/ error
 
     plt.xlim(-1, x_max)
     plt.ylim(-1, init_height+1)
