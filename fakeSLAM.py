@@ -4,14 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random as r
 
-#unsorted global variables
-init_angle = 120 # will be replaced in each frame by imu data read
-init_height= 18
-init_x = 0
-x_max = 50
-y_max = 4
-sigma = 0.1
-
 #reassigns each value in matrix with a noisy value
 def noise(matrix, sigma):
     mu = 0 # mean and standard deviation
@@ -60,7 +52,7 @@ def pointcloud_generator(init_angle, init_height, init_x, truth):
         same_j = False
         slope = m.tan(m.radians(i))
         ray_point = [init_x+40, ((init_x+40)*slope)+18]
-        plt.plot([0,ray_point[0]],[18,ray_point[1]])
+        plt.plot([0,ray_point[0]],[18,ray_point[1]]) # plots ray lines
         while same_j == False and j <= np.size(truth, 1)-1:
             j_start = [truth[0, j], truth[1, j]]
             j_end = [truth[0, j+1], truth[1, j+1]]
@@ -74,11 +66,11 @@ def pointcloud_generator(init_angle, init_height, init_x, truth):
 
     return np.array([pointcloud_x, pointcloud_y])
 
-def plot(x_max, y_max, init_angle, init_x, init_height, truth):
-    
-    pointcloud = pointcloud_generator(init_angle, init_height, init_x, truth)
+def plot(x_max, y_max, init_angle, init_x, init_height, truth, sigma):
     plt.plot(init_x, init_height, 'r+') # camera position
-    plt.plot(pointcloud[0], pointcloud[1], 'ro') # pointcloud
+
+    pointcloud = pointcloud_generator(init_angle, init_height, init_x, truth)
+    plt.plot(pointcloud[0], pointcloud[1], 'r.') # pointcloud
 
     FOV = 57
     angle_min = init_angle-(FOV/2)
@@ -100,15 +92,17 @@ def plot(x_max, y_max, init_angle, init_x, init_height, truth):
     plt.plot(x_fov_max, pos_max) # FOV maximum
 
     with_error = noise(pointcloud, sigma)
-    print(with_error)
-    plt.plot(with_error[0], with_error[1], 'bo') # noisy points
+    plt.plot(with_error[0], with_error[1], 'b.') # noisy points
+
+    camera_error = noise(np.asarray([init_angle, init_height, init_x]), sigma)
+    error_pointcloud = pointcloud_generator(camera_error[0], camera_error[1], camera_error[2], truth)
+    plt.plot(error_pointcloud[0], error_pointcloud[1], 'c.') # pointcloud w/ error
 
     plt.xlim(-1, x_max)
     plt.ylim(-1, init_height+1)
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.show()
 
-plot(x_max, y_max, init_angle, init_x, init_height, truth(x_max,y_max))
+    plt.show()
 
 def initialize_camera():
     # start the frames pipe
@@ -124,30 +118,30 @@ def position_data(position):
     return np.asarray([position.x, position.y, position.z])
 
 # #transfer coordinate system
-# def roll_pitch_yaw_calc(data):
-#     w = data.rotation.w
-#     x = -data.rotation.z
-#     y = data.rotation.x
-#     z = -data.rotation.y
+def roll_pitch_yaw_calc(data):
+    w = data.rotation.w
+    x = -data.rotation.z
+    y = data.rotation.x
+    z = -data.rotation.y
 
-#     pitch =  -m.asin(2.0 * (x*z - w*y)) * 180.0 / m.pi;
-#     roll  =  m.atan2(2.0 * (w*x + y*z), w*w - x*x - y*y + z*z) * 180.0 / m.pi;
-#     yaw   =  m.atan2(2.0 * (w*z + x*y), w*w + x*x - y*y - z*z) * 180.0 / m.pi;
+    pitch =  -m.asin(2.0 * (x*z - w*y)) * 180.0 / m.pi;
+    roll  =  m.atan2(2.0 * (w*x + y*z), w*w - x*x - y*y + z*z) * 180.0 / m.pi;
+    yaw   =  m.atan2(2.0 * (w*z + x*y), w*w + x*x - y*y - z*z) * 180.0 / m.pi;
 
-#     return np.asarray([roll, pitch, yaw])
+    return np.asarray([roll, pitch, yaw])
 
 # #transfer coordinate system
-# def transformation_matrix_creator(position, roll_pitch_yaw):
-#     r = roll_pitch_yaw[0]
-#     p = roll_pitch_yaw[1]
-#     y = roll_pitch_yaw[2]
+def transformation_matrix_creator(position, roll_pitch_yaw):
+    r = roll_pitch_yaw[0]
+    p = roll_pitch_yaw[1]
+    y = roll_pitch_yaw[2]
 
-#     rotation = np.array([[m.cos(y)*m.cos(r)-m.cos(p)*m.sin(r)*m.sin(y), m.cos(y)*m.sin(r)+m.cos(p)*m.cos(r)*m.sin(y), m.sin(y)*m.sin(p)], [-m.sin(y)*m.cos(r)-m.cos(p)*m.sin(r)*m.cos(y), -m.sin(y)*m.sin(r)+m.cos(p)*m.cos(r)*m.cos(y), m.cos(y)*m.sin(p)], [m.sin(p)*m.sin(r), -m.sin(p)*m.cos(r), m.cos(p)]])
+    rotation = np.array([[m.cos(y)*m.cos(r)-m.cos(p)*m.sin(r)*m.sin(y), m.cos(y)*m.sin(r)+m.cos(p)*m.cos(r)*m.sin(y), m.sin(y)*m.sin(p)], [-m.sin(y)*m.cos(r)-m.cos(p)*m.sin(r)*m.cos(y), -m.sin(y)*m.sin(r)+m.cos(p)*m.cos(r)*m.cos(y), m.cos(y)*m.sin(p)], [m.sin(p)*m.sin(r), -m.sin(p)*m.cos(r), m.cos(p)]])
 
-#     Rd = np.hstack((rotation, position.reshape(3,1)))
-#     H = np.vstack((Rd, np.array((0,0,0,1))))
+    Rd = np.hstack((rotation, position.reshape(3,1)))
+    H = np.vstack((Rd, np.array((0,0,0,1))))
 
-#     return H
+    return H
     
 def project_points(f,depth,position,roll_pitch_yaw, pointcloud):
     P1_matrix = np.zeros((1,4))
@@ -169,4 +163,15 @@ def project_points(f,depth,position,roll_pitch_yaw, pointcloud):
 
     return projected_points
 
+############
+
+#unsorted global variables
+init_angle = 120 # will be replaced in each frame by imu data read
+init_height= 18
+init_x = 0
+x_max = 50
+y_max = 4
+sigma = 0.1
+
+plot(x_max, y_max, init_angle, init_x, init_height, truth(x_max,y_max), sigma)
 
