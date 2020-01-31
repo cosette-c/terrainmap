@@ -5,17 +5,20 @@ import matplotlib.pyplot as plt
 import random as r
 
 #unsorted global variables
-init_angle = 120 #replaced in each frame by imu data read
+init_angle = 120 # will be replaced in each frame by imu data read
 init_height= 18
 init_x = 0
+x_max = 50
+y_max = 4
+sigma = 0.1
 
 #reassigns each value in matrix with a noisy value
-def noise(matrix):
-    mu, sigma = 0, 0.1 # mean and standard deviation
+def noise(matrix, sigma):
+    mu = 0 # mean and standard deviation
     s = np.random.normal(mu, sigma, 1000)
     n = np.size(s,0)
     for value in np.nditer(matrix, op_flags=['readwrite']):
-        value[...] = value*s[r.randint(0,n)]
+        value[...] = value*1+s[r.randint(0,n)]
     return matrix
 
 #makes a truth
@@ -53,7 +56,7 @@ def pointcloud_generator(init_angle, init_height, init_x, truth):
     i = angle_min
     j = i-angle_min
 
-    for i in range(angle_min, angle_max):
+    for i in range(angle_min, angle_max, 1):
         same_j = False
         slope = m.tan(m.radians(i))
         ray_point = [init_x+40, ((init_x+40)*slope)+18]
@@ -72,9 +75,10 @@ def pointcloud_generator(init_angle, init_height, init_x, truth):
     return np.array([pointcloud_x, pointcloud_y])
 
 def plot(x_max, y_max, init_angle, init_x, init_height, truth):
+    
     pointcloud = pointcloud_generator(init_angle, init_height, init_x, truth)
-    plt.plot(init_x, init_height, 'r+')
-    plt.plot(pointcloud[0], pointcloud[1], 'ro')
+    plt.plot(init_x, init_height, 'r+') # camera position
+    plt.plot(pointcloud[0], pointcloud[1], 'ro') # pointcloud
 
     FOV = 57
     angle_min = init_angle-(FOV/2)
@@ -88,18 +92,23 @@ def plot(x_max, y_max, init_angle, init_x, init_height, truth):
     min_line = slope_min*x_range+init_height
     pos_min = min_line[min_line>=0]
     x_min = x_range[0:pos_min.size]
-    plt.plot(x_min, pos_min)
+    plt.plot(x_min, pos_min) # FOV minimum
 
     max_line = slope_max*x_range+init_height
     pos_max = max_line[max_line>=0]
     x_fov_max = x_range[0:pos_max.size]
-    plt.plot(x_fov_max, pos_max)
+    plt.plot(x_fov_max, pos_max) # FOV maximum
+
+    with_error = noise(pointcloud, sigma)
+    print(with_error)
+    plt.plot(with_error[0], with_error[1], 'bo') # noisy points
+
     plt.xlim(-1, x_max)
     plt.ylim(-1, init_height+1)
     plt.gca().set_aspect('equal', adjustable='box')
     plt.show()
 
-plot(50,4,init_angle, init_x, init_height, truth(50,4))
+plot(x_max, y_max, init_angle, init_x, init_height, truth(x_max,y_max))
 
 def initialize_camera():
     # start the frames pipe
@@ -140,8 +149,6 @@ def position_data(position):
 
 #     return H
     
-    
-#pointcloud = pointcloud(init_angle, init_height, truth)
 def project_points(f,depth,position,roll_pitch_yaw, pointcloud):
     P1_matrix = np.zeros((1,4))
     P0_matrix = np.zeros((1,4))
