@@ -72,8 +72,8 @@ def truth_world_frame(x_range, y_range): #some sort of blocky terrain
     y1 = np.repeat(y,2)[:-1]
     i = 0
     for i in range(i, np.size(x1), 2):
-    	x1[i] += 0.5
-    	i += 2
+        x1[i] += 0.5
+        i += 2
     plt.plot(x1,y1)
     return np.concatenate(([x1],[y1]), axis = 0)
 
