@@ -21,10 +21,10 @@ def polar_to_cartesian(r,theta):
 # still has a hardcoded variable, need a test function to see if transformations are happening correctly
 ############################################################################
 
-def make_T(r, theta):
-    rotation = -30*m.pi/180 ;
-    px = r*m.sin(theta)
-    py = -r*m.cos(theta)
+def make_T(r, theta, phi):
+    rotation = phi*m.pi/180 ;
+    px = r*m.cos(theta)
+    py = -r*m.sin(theta)
 
     T = np.array([[m.cos(rotation),  m.sin(rotation), 0, px], [-m.sin(rotation), m.cos(rotation), 0, py],[0, 0, 1, 0],[0, 0, 0, 1]])
 
@@ -110,7 +110,7 @@ def pointcloud_world_frame(init_angle, init_height, init_x, truth_world_frame):
 def pointcloud_to_camera_frame(pointcloud_world_frame, camera_position):
     pointcloud_camera_frame_r = np.array([])
     pointcloud_camera_frame_theta = np.array([])
-    T_to_camera = make_T(camera_position[0], camera_position[1])
+    T_to_camera = make_T(camera_position[0], camera_position[1], camera_position[2])
 
     for i in range(np.size(pointcloud_world_frame,1)):
         x = pointcloud_world_frame[0,i]
@@ -128,7 +128,7 @@ def error_to_world_frame(pointcloud_camera_frame, sigma_angle, sigma_distance, c
     error_world_frame_x = np.array([])
     error_world_frame_y = np.array([])
     error_camera_frame = noise(pointcloud_camera_frame, sigma_angle, sigma_distance)
-    T_to_camera = make_T(camera_position[0], camera_position[1])
+    T_to_camera = make_T(camera_position[0], camera_position[1], camera_position[2])
 
     for i in range(np.size(error_camera_frame,1)):
         r = error_camera_frame[0,i]

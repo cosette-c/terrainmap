@@ -8,12 +8,12 @@ init_height= 18
 init_x = 0
 
 camera_r, camera_theta = f.cartesian_to_polar(init_x, init_height)
-camera_position = np.array([camera_r, camera_theta])
+camera_position = np.array([camera_r, camera_theta, 30])
 
 x_max = 50
 y_max = 4
-sigma_distance = 0.07
-sigma_angle = 0.005
+sigma_distance = 0.0000000007
+sigma_angle = 0.05
 
 truth_world_frame = f.truth_world_frame(x_max, y_max)
 pointcloud_world_frame = f.pointcloud_world_frame(init_angle, init_height, init_x, truth_world_frame)
