@@ -39,8 +39,15 @@ def noise(matrix, sigma_angle, sigma_distance):
 
     mu_angle = 0 # mean and standard deviation
     mu_distance = 0
-    s_angle = np.random.normal(mu_angle, sigma_angle, 1000)
-    s_distance = np.random.normal(mu_distance, sigma_distance, 1000)
+    if sigma_angle == 0:
+        s_distance = np.random.normal(mu_distance, sigma_distance, 1000)
+        s_angle = np.zeros(np.size(s_distance))
+    elif sigma_distance == 0:
+        s_distance = np.zeros(np.size(s_angle))
+        s_angle = np.random.normal(mu_angle, sigma_angle, 1000)
+    else:
+        s_angle = np.random.normal(mu_angle, sigma_angle, 1000)
+        s_distance = np.random.normal(mu_distance, sigma_distance, 1000)
 
     n = np.size(s_angle,0)
 
