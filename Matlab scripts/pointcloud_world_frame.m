@@ -8,6 +8,8 @@ origin = [init_x, init_height] ;
 i = angle_min ;
 j = i - angle_min ;
 
+%% boolean ad
+
 for i = angle_min:angle_max 
     same_j = false ; 
     slope = tan(degtorad(i)) ;

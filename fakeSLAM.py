@@ -85,7 +85,7 @@ def truth_world_frame(x_range, y_range): #some sort of blocky terrain
     return np.concatenate(([x1],[y1]), axis = 0)
 
 # #makes a pointcloud of the truth terrain
-def pointcloud_world_frame(init_angle, init_height, init_x, truth_world_frame):
+def pointcloud_world_frame(init_angle, init_height, init_x, truth_world_frame, x_max, y_max):
     pointcloud_x = np.array([])
     pointcloud_y = np.array([])
     FOV = 57
@@ -99,12 +99,15 @@ def pointcloud_world_frame(init_angle, init_height, init_x, truth_world_frame):
     for i in range(angle_min, angle_max, 1):
         same_j = False
         slope = m.tan(m.radians(i))
-        ray_point = [init_x+40, ((init_x+40)*slope)+18]
-        plt.plot([0,ray_point[0]],[18,ray_point[1]])
+        ray_point = [init_x+x_max, ((init_x+x_max)*slope)+init_height]
+        plt.plot([0,ray_point[0]],[init_height,ray_point[1]])
         while same_j == False and j <= np.size(truth_world_frame, 1)-1:
             j_start = [truth_world_frame[0, j], truth_world_frame[1, j]]
             j_end = [truth_world_frame[0, j+1], truth_world_frame[1, j+1]]
             intersect = get_intersect(j_start, j_end, origin, ray_point)
+
+####################################################################################################
+
             if intersect[0]>j_end[0] or intersect[1]>j_end[1]:
                 j += 1
             else:
@@ -129,6 +132,7 @@ def pointcloud_to_camera_frame(pointcloud_world_frame, camera_position):
         pointcloud_camera_frame_r = np.append(pointcloud_camera_frame_r, r_camera)
         pointcloud_camera_frame_theta = np.append(pointcloud_camera_frame_theta, theta_camera)
 
+        
     return np.array([pointcloud_camera_frame_r, pointcloud_camera_frame_theta])
 
 def error_to_world_frame(pointcloud_camera_frame, sigma_angle, sigma_distance, camera_position):
@@ -180,18 +184,18 @@ def plot(x_max, y_max, init_angle, init_x, init_height, truth, pointcloud_world_
     plt.gca().set_aspect('equal', adjustable='box')
     plt.show()
 
-def initialize_camera():
-    # start the frames pipe
-    p = rs.pipeline()
-    conf = rs.config()
-    conf.enable_stream(rs.stream.pose)
-    prof = p.start(conf)
+# def initialize_camera():
+#     # start the frames pipe
+#     p = rs.pipeline()
+#     conf = rs.config()
+#     conf.enable_stream(rs.stream.pose)
+#     prof = p.start(conf)
 
-    return p
+#     return p
 
-#transfer coordinate system
-def position_data(position):
-    return np.asarray([position.x, position.y, position.z])
+# #transfer coordinate system
+# def position_data(position):
+#     return np.asarray([position.x, position.y, position.z])
 
 # #transfer coordinate system
 # def roll_pitch_yaw_calc(data):
@@ -219,24 +223,24 @@ def position_data(position):
 
 #     return H
     
-def project_points(f,depth,position,roll_pitch_yaw, pointcloud):
-    P1_matrix = np.zeros((1,4))
-    P0_matrix = np.zeros((1,4))
-    projected_points = np.array([])
+# def project_points(f,depth,position,roll_pitch_yaw, pointcloud):
+#     P1_matrix = np.zeros((1,4))
+#     P0_matrix = np.zeros((1,4))
+#     projected_points = np.array([])
     
-    for row in pointcloud:
-        z = truth[row,0]
-        y = truth[row,1]
-        P1_vector = np.array([0,y,z,1])
+#     for row in pointcloud:
+#         z = truth[row,0]
+#         y = truth[row,1]
+#         P1_vector = np.array([0,y,z,1])
 
-        P1_matrix = np.vstack((P1_matrix,P1_vector))
+#         P1_matrix = np.vstack((P1_matrix,P1_vector))
 
-        H = transformation_matrix_creator(position,roll_pitch_yaw)
-        #P0_vector = np.dot(H,P1_vector)
-        P0_matrix = np.vstack((P0_matrix,P0_vector))
+#         H = transformation_matrix_creator(position,roll_pitch_yaw)
+#         #P0_vector = np.dot(H,P1_vector)
+#         P0_matrix = np.vstack((P0_matrix,P0_vector))
         
-        projected_points = np.append(projected_points, np.tranpsoe(P0_matrix), axis=0)
+#         projected_points = np.append(projected_points, np.tranpsoe(P0_matrix), axis=0)
 
-    return projected_points
+#     return projected_points
 
 
